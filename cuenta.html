@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Cuenta · ALPA Creativa</title>
+  <meta name="description" content="Accede a tu cuenta de ALPA Creativa. Gestiona tus pedidos, favoritos y datos personales." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .auth-section { padding: 60px 0 100px; }
+    .auth-card {
+      max-width: 440px; margin: 0 auto; background: var(--surface);
+      border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 36px 32px; box-shadow: var(--shadow-md);
+    }
+    .auth-card h1 {
+      font-family: 'Playfair Display', serif; font-size: 28px;
+      margin-bottom: 6px; text-align: center;
+    }
+    .auth-card h1 em { font-style: italic; color: var(--primary); }
+    .auth-card > p { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+    .auth-tabs {
+      display: flex; gap: 0; margin-bottom: 24px;
+      border: 1px solid var(--line); border-radius: 999px; overflow: hidden;
+    }
+    .auth-tab {
+      flex: 1; padding: 11px 0; text-align: center;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      background: var(--surface); color: var(--muted);
+      border: none; font-family: inherit; transition: var(--transition);
+    }
+    .auth-tab--active { background: var(--primary); color: #fff; }
+    .auth-form { display: none; }
+    .auth-form--active { display: block; }
+    .auth-field { margin-bottom: 14px; }
+    .auth-field label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+    .auth-field input {
+      width: 100%; padding: 12px 14px; border: 1.5px solid var(--line);
+      border-radius: var(--radius-sm); font-family: inherit; font-size: 14px;
+      color: var(--ink); outline: none; transition: var(--transition);
+    }
+    .auth-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .auth-field input.input--error { border-color: #c0392b; }
+    .auth-error {
+      font-size: 12px; color: #c0392b; margin-top: 4px; display: none;
+    }
+    .auth-error--show { display: block; }
+    .auth-submit {
+      width: 100%; padding: 14px; background: var(--primary); color: #fff;
+      border: none; border-radius: 999px; font-family: inherit;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: var(--transition);
+      margin-top: 8px;
+    }
+    .auth-submit:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .auth-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .auth-divider {
+      text-align: center; margin: 20px 0; position: relative;
+      color: var(--muted); font-size: 13px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: ""; position: absolute; top: 50%;
+      width: 40%; height: 1px; background: var(--line);
+    }
+    .auth-divider::before { left: 0; }
+    .auth-divider::after { right: 0; }
+    .auth-hint {
+      text-align: center; font-size: 13px; color: var(--muted);
+      margin-top: 16px; line-height: 1.5;
+    }
+    .auth-hint a { color: var(--primary); font-weight: 600; }
+    .auth-hero {
+      background: linear-gradient(135deg, var(--ivory) 0%, #fff 50%, var(--accent-soft) 100%);
+      padding: 50px 0 40px; text-align: center;
+    }
+    .auth-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 40px); margin-bottom: 8px; }
+    .auth-hero h1 em { font-style: italic; color: var(--primary); }
+    .auth-hero p { color: var(--ink-2); font-size: 16px; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Saltar al contenido</a>
+
+  <div id="topbarSlot"></div>
+  <div id="headerSlot"></div>
+
+  <section class="auth-hero" id="main-content">
+    <div class="container">
+      <h1>Mi <em>cuenta</em></h1>
+      <p>Accede o crea tu cuenta para gestionar pedidos y favoritos</p>
+    </div>
+  </section>
+
+  <section class="auth-section">
+    <div class="container">
+      <div class="auth-card" data-aos="fade-up">
+        <div class="auth-tabs">
+          <button class="auth-tab auth-tab--active" id="tabLogin">Iniciar sesión</button>
+          <button class="auth-tab" id="tabRegister">Crear cuenta</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form class="auth-form auth-form--active" id="loginForm" novalidate>
+          <div class="auth-field">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" placeholder="tu@email.com" autocomplete="email" required />
+            <span class="auth-error" id="loginEmailError">Introduce un email válido</span>
+          </div>
+          <div class="auth-field">
+            <label for="loginPassword">Contraseña</label>
+            <input type="password" id="loginPassword" placeholder="Tu contraseña" autocomplete="current-password" required />
+            <span class="auth-error" id="loginPasswordError">Introduce tu contraseña</span>
+          </div>
+          <div class="auth-error" id="loginGlobalError" style="margin-bottom:10px;text-align:center"></div>
+          <button type="submit" class="auth-submit" id="loginSubmit">Iniciar sesión</button>
+          <p class="auth-hint">¿No tienes cuenta? <a href="#" id="switchToRegister">Crear cuenta</a></p>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form class="auth-form" id="registerForm" novalidate>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="auth-field">
+              <label for="regFirstName">Nombre *</label>
+              <input type="text" id="regFirstName" placeholder="Tu nombre" autocomplete="given-name" required />
+              <span class="auth-error" id="regFirstNameError">Introduce tu nombre</span>
+            </div>
+            <div class="auth-field">
+              <label for="regLastName">Apellidos *</label>
+              <input type="text" id="regLastName" placeholder="Tus apellidos" autocomplete="family-name" required />
+              <span class="auth-error" id="regLastNameError">Introduce tus apellidos</span>
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="regEmail">Email *</label>
+            <input type="email" id="regEmail" placeholder="tu@email.com" autocomplete="email" required />
+            <span class="auth-error" id="regEmailError">Introduce un email válido</span>
+          </div>
+          <div class="auth-field">
+            <label for="regPassword">Contraseña *</label>
+            <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required />
+            <span class="auth-error" id="regPasswordError">La contraseña debe tener al menos 6 caracteres</span>
+          </div>
+          <div class="auth-field">
+            <label for="regPasswordConfirm">Confirmar contraseña *</label>
+            <input type="password" id="regPasswordConfirm" placeholder="Repite la contraseña" autocomplete="new-password" required />
+            <span class="auth-error" id="regPasswordConfirmError">Las contraseñas no coinciden</span>
+          </div>
+          <div class="auth-error" id="registerGlobalError" style="margin-bottom:10px;text-align:center"></div>
+          <button type="submit" class="auth-submit" id="registerSubmit">Crear cuenta</button>
+          <p class="auth-hint">¿Ya tienes cuenta? <a href="#" id="switchToLogin">Iniciar sesión</a></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <div id="footerSlot"></div>
+  <div id="whatsappSlot"></div>
+  <div id="cartSlot"></div>
+  <div id="modalSlot"></div>
+  <div id="toastSlot"></div>
+  <div id="cookieSlot"></div>
+  <div id="scrollTopSlot"></div>
+
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="js/shopify-config.js"></script>
+  <script src="js/shopify-api.js"></script>
+  <script src="js/shopify-auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/cuenta.js"></script>
+</body>
+</html>

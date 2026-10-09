@@ -1,0 +1,7 @@
+# Privado: no subir al hosting
+/documentos carmen/
+js/data.legacy-backup.js
+
+# Sistema
+.DS_Store
+Thumbs.db

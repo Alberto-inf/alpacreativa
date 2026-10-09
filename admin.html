@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin · ALPA Creativa</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px 90px; }
+    .admin-hero { padding: 44px 0 10px; }
+    .admin-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 40px); margin: 0 0 6px; }
+    .admin-hero h1 em { font-style: italic; color: var(--primary); }
+    .admin-hero p { color: var(--ink-2); margin: 0; }
+    .mode-badge { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 5px 12px; border-radius: 999px; margin-top: 12px; }
+    .mode-badge.demo { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .mode-badge.cloud { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .admin-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 28px; margin-top: 22px; }
+    .admin-login { max-width: 440px; margin: 0 auto; }
+    .admin-field { margin-bottom: 14px; }
+    .admin-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .admin-field input[type="text"], .admin-field input[type="email"], .admin-field input[type="password"],
+    .admin-field input[type="number"], .admin-field select, .admin-field textarea {
+      width: 100%; padding: 11px 13px; border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+      font-family: inherit; font-size: 14px; color: var(--ink); outline: none; background: #fff;
+    }
+    .admin-field textarea { min-height: 88px; resize: vertical; }
+    .admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .admin-error { font-size: 13px; color: #c0392b; margin: 8px 0; min-height: 1.2em; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .check-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .check-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1.5px solid var(--line); border-radius: 999px; font-size: 13px; cursor: pointer; background: #fff; user-select: none; }
+    .check-pill input { accent-color: var(--primary); }
+    .check-pill .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,.2); display: inline-block; }
+    .photo-zone { display: grid; grid-template-columns: 220px 1fr; gap: 18px; align-items: start; }
+    .photo-preview { width: 220px; height: 220px; border: 2px dashed var(--line); border-radius: 12px; display: grid; place-items: center; overflow: hidden; background: #fafafa; color: var(--muted); font-size: 13px; text-align: center; }
+    .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .toolbar input[type="search"], .toolbar select { padding: 10px 13px; border: 1.5px solid var(--line); border-radius: 999px; font-family: inherit; font-size: 14px; background: #fff; }
+    .plist { display: grid; gap: 12px; margin-top: 18px; }
+    .prow { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px 10px 10px; background: #fff; }
+    .prow img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; background: #f3f3f3; }
+    .prow .pname { font-weight: 700; font-size: 15px; }
+    .prow .pmeta { font-size: 13px; color: var(--muted); }
+    .prow .off { display: inline-block; font-size: 11px; font-weight: 700; background: #fee2e2; color: #991b1b; border-radius: 999px; padding: 2px 9px; margin-left: 8px; }
+    .prow .acts { display: flex; gap: 8px; }
+    .link-btn { background: #fff; border: 1.5px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .link-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .link-btn.danger:hover { border-color: #c0392b; color: #c0392b; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    @media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } .photo-zone { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <a href="#admin-main" class="skip-link">Saltar al contenido</a>
+  <div id="topbarSlot"></div>
+  <div id="headerSlot"></div>
+
+  <main id="admin-main">
+    <div class="admin-wrap">
+      <div class="admin-hero">
+        <h1>Panel <em>admin</em></h1>
+        <p>Zona privada para gestionar el catálogo. Solo usuarios autorizados.</p>
+        <span class="mode-badge demo" id="modeBadge">Modo demo local</span>
+      </div>
+
+      <!-- LOGIN -->
+      <section class="admin-card admin-login" id="loginCard">
+        <h2 style="font-family:'Playfair Display',serif;margin:0 0 4px">Entrar</h2>
+        <p style="color:var(--muted);font-size:14px;margin:0 0 18px">Usa el email autorizado. Mañana añadimos el suyo.</p>
+        <form id="adminLoginForm" novalidate>
+          <div class="admin-field">
+            <label for="adminEmail">Email</label>
+            <input type="email" id="adminEmail" placeholder="tu@email.com" autocomplete="email" required />
+          </div>
+          <div class="admin-field">
+            <label for="adminPass">Contraseña</label>
+            <input type="password" id="adminPass" placeholder="Tu contraseña" autocomplete="current-password" required />
+          </div>
+          <div class="admin-error" id="loginError"></div>
+          <button type="submit" class="btn btn--primary" id="loginBtn" style="width:100%">Entrar al panel</button>
+        </form>
+      </section>
+
+      <!-- PANEL -->
+      <section id="panelSection" style="display:none">
+        <div class="admin-card">
+          <div class="toolbar">
+            <div class="btn-row">
+              <button class="btn btn--primary" id="newBtn">+ Nuevo producto</button>
+              <button class="link-btn" id="logoutBtn">Cerrar sesión</button>
+              <span id="userLabel" style="font-size:13px;color:var(--muted)"></span>
+            </div>
+            <div class="btn-row">
+              <input type="search" id="searchInput" placeholder="Buscar por nombre..." />
+              <select id="filterCat"><option value="">Todas las categorías</option></select>
+            </div>
+          </div>
+          <div class="plist" id="productList"></div>
+        </div>
+
+        <div class="admin-card" id="formCard" style="display:none">
+          <h2 style="font-family:'Playfair Display',serif;margin:0 0 4px" id="formTitle">Nuevo producto</h2>
+          <p style="color:var(--muted);font-size:14px;margin:0 0 18px">La categoría es cerrada: solo las 11 existentes, para que cada artículo salga en su sitio.</p>
+          <form id="productForm" novalidate>
+            <div class="photo-zone full" style="grid-column:1/-1;margin-bottom:14px">
+              <div class="photo-preview" id="photoPreview">Sin foto.<br>Pulsa “Elegir foto”.</div>
+              <div>
+                <div class="admin-field">
+                  <label for="fPhoto">Foto * (JPG/PNG desde el ordenador)</label>
+                  <input type="file" id="fPhoto" accept="image/jpeg,image/png,image/webp" />
+                </div>
+                <p style="font-size:13px;color:var(--muted);margin:0">Se comprime sola a ~1600px para no llenar el plan gratis. Si editas sin elegir foto nueva, se mantiene la actual.</p>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="admin-field"><label for="fName">Nombre *</label><input type="text" id="fName" maxlength="120" placeholder="Ej. Camiseta BETA PREMIUM" /></div>
+              <div class="admin-field"><label for="fPrice">Precio (€) *</label><input type="number" id="fPrice" min="0" step="0.01" placeholder="11.00" /></div>
+              <div class="admin-field full"><label for="fDesc">Descripción *</label><textarea id="fDesc" placeholder="Tejido, gramaje, personalización..."></textarea></div>
+              <div class="admin-field"><label for="fCategory">Categoría * (lista cerrada)</label><select id="fCategory"></select></div>
+              <div class="admin-field"><label for="fSubcategory">Subcategoría</label><select id="fSubcategory"></select></div>
+              <div class="admin-field full"><label>Tallas</label><div class="check-grid" id="sizesBox"></div></div>
+              <div class="admin-field full"><label>Colores (los que tenga el artículo, sin límite)</label>
+                <div class="btn-row" style="margin-bottom:10px">
+                  <input type="color" id="colorPicker" value="#1e3a5f" aria-label="Elegir color" style="width:52px;height:40px;padding:3px;border:1.5px solid var(--line);border-radius:8px;background:#fff;cursor:pointer" />
+                  <input type="text" id="colorName" maxlength="30" placeholder="Nombre (ej. Verde botella)" style="flex:1;min-width:180px;padding:10px 13px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px" />
+                  <button type="button" class="link-btn" id="addColorBtn">+ Añadir color</button>
+                </div>
+                <div class="check-grid" id="colorsBox"></div>
+              </div>
+              <div class="admin-field full">
+                <label class="check-pill"><input type="checkbox" id="fActive" checked /> Visible en la tienda</label>
+              </div>
+            </div>
+            <div class="admin-error" id="formError"></div>
+            <div class="btn-row">
+              <button type="submit" class="btn btn--primary" id="saveBtn">Guardar producto</button>
+              <button type="button" class="link-btn" id="cancelBtn">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="footerSlot"></div>
+  <div id="toastSlot"></div>
+
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
