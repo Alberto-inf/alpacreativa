@@ -60,7 +60,7 @@ const CATEGORIES = [
     name: "Línea Deportiva",
     slug: "linea-deportiva",
     sub: [
-      "Chandals", "Sudaderas", "Equipaciones", "Banderines",
+      "Camisetas", "Chandals", "Sudaderas", "Equipaciones", "Banderines",
       "Lonas publicitarias", "Trofeos", "Medallas", "Zapatilleros",
       "Mochilas", "Botellas de agua", "Espinilleras personalizadas",
       "Camisetas para acompañantes", "Bufandas"
@@ -79,7 +79,7 @@ const CATEGORIES = [
     name: "Ropa",
     slug: "ropa",
     sub: [
-      "Camisetas", "Polos", "Sudaderas", "Chalecos", "Chaquetas"
+      "Camisetas", "Camisas", "Polos", "Sudaderas", "Chalecos", "Chaquetas"
     ]
   },
   {
@@ -131,7 +131,7 @@ const CATEGORIES = [
 
 const CATALOG_MODE = true; // catálogo sin ventas: oculta carrito/login, precio "A partir de:"
 
-const PRODUCT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+const PRODUCT_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"];
 const PRODUCT_COLORS = [
   { name: "Blanco", hex: "#ffffff" },
   { name: "Negro", hex: "#1a1a1a" },
@@ -309,14 +309,13 @@ const LEGACY_PRODUCTS = [
 const PRODUCTS = [];
 
 const GALLERY = [
-  { url: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600&h=600&fit=crop&auto=format", label: "Bordado en sudadera" },
-  { url: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&h=600&fit=crop&auto=format", label: "Equipación completa" },
-  { url: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=600&fit=crop&auto=format", label: "Gorros personalizados" },
-  { url: "https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?w=600&h=600&fit=crop&auto=format", label: "Camisetas empresa" },
-  { url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop&auto=format", label: "Bordado premium" },
-  { url: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&h=600&fit=crop&auto=format", label: "Sudaderas corporativas" },
-  { url: "https://images.unsplash.com/photo-1542295669297-4d352b042bca?w=600&h=600&fit=crop&auto=format", label: "Colección textil" },
-  { url: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&h=600&fit=crop&auto=format", label: "Bolsas tote bag" }
+  { url: "img/imghero/055d218e-820e-4e21-bfe6-cbf731a6ca23.JPG", label: "Trabajo real 1" },
+  { url: "img/imghero/067a599c-8e1c-4d17-bc8c-2755894bdb5d.JPG", label: "Trabajo real 2" },
+  { url: "img/imghero/56b28544-df31-4f76-9271-fe907fc98c57.JPG", label: "Trabajo real 3" },
+  { url: "img/imghero/7c749546-6e75-43a6-8819-395811d7902c.JPG", label: "Trabajo real 4" },
+  { url: "img/imghero/a069d840-8547-4cd0-97d7-ecd303327812.JPG", label: "Trabajo real 5" },
+  { url: "img/imghero/b9399f84-883a-45cc-a7a3-6f3972699bcf.JPG", label: "Trabajo real 6" },
+  { url: "img/imghero/f200af6f-91b1-4a72-be66-8248aec9e95e.JPG", label: "Trabajo real 7" }
 ];
 
 const TESTIMONIALS = [

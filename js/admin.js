@@ -15,7 +15,7 @@
   let sb = null;
   let session = null;
   let editingId = null;
-  let currentPhotoURL = ""; // se mantiene al editar si no se elige foto nueva
+  let currentPhotoURLs = ["", ""]; // foto1 (principal) + foto2 (segunda vista)
   let cache = []; // productos cargados
   let pickedColors = []; // colores libres del formulario [{name, hex}]
 
@@ -85,7 +85,7 @@
       cats.map((c) => `<option value="${esc(c.slug)}">${esc(c.name)}</option>`).join("");
     refreshSubcategories();
 
-    const sizes = (typeof PRODUCT_SIZES !== "undefined" ? PRODUCT_SIZES : ["XS","S","M","L","XL","XXL"]);
+    const sizes = (typeof PRODUCT_SIZES !== "undefined" ? PRODUCT_SIZES : ["XS","S","M","L","XL","XXL","3XL","4XL","5XL"]);
     $("sizesBox").innerHTML = sizes.map((s) =>
       `<label class="check-pill"><input type="checkbox" value="${esc(s)}" /> ${esc(s)}</label>`
     ).join("");
@@ -246,15 +246,31 @@
   }
 
   /* ---------- Panel: lista + filtros ---------- */
+  let listOpen = false; // plegada por defecto: el alta no exige scroll
+
+  function setListOpen(open) {
+    listOpen = open;
+    $("listWrap").hidden = !open;
+    $("toggleListBtn").setAttribute("aria-expanded", String(open));
+    paintToggleLabel();
+  }
+
+  function paintToggleLabel() {
+    const b = $("toggleListBtn");
+    if (b) b.textContent = (listOpen ? "Ocultar productos (" : "Ver productos (") + cache.length + ")";
+  }
+
   function bindPanel() {
     $("logoutBtn").addEventListener("click", onLogout);
     $("newBtn").addEventListener("click", () => openForm(null));
+    $("toggleListBtn").addEventListener("click", () => setListOpen(!listOpen));
     $("cancelBtn").addEventListener("click", closeForm);
     $("fCategory").addEventListener("change", () => refreshSubcategories());
     $("searchInput").addEventListener("input", paintList);
     $("filterCat").addEventListener("change", paintList);
     $("productForm").addEventListener("submit", onSave);
-    $("fPhoto").addEventListener("change", onPhotoPreview);
+    $("fPhoto1").addEventListener("change", () => onPhotoPreview("fPhoto1", "photoPreview1"));
+    $("fPhoto2").addEventListener("change", () => onPhotoPreview("fPhoto2", "photoPreview2"));
     $("addColorBtn").addEventListener("click", addPickedColor);
     $("colorName").addEventListener("keydown", (e) => {
       if (e.key === "Enter") { e.preventDefault(); addPickedColor(); }
@@ -300,11 +316,12 @@
     const box = $("productList");
     if (!rows.length) {
       box.innerHTML = `<p style="color:var(--muted);font-size:14px;margin:6px 0">Sin productos. Pulsa “+ Nuevo producto”.</p>`;
+      paintToggleLabel();
       return;
     }
     box.innerHTML = rows.map((p) => `
       <div class="prow">
-        <img src="${esc(p.image_url || "")}" alt="" loading="lazy" onerror="this.style.opacity=.25" />
+        <img src="${esc(p.image_url || (p.image_urls && p.image_urls[0]) || "")}" alt="" loading="lazy" onerror="this.style.opacity=.25" />
         <div>
           <span class="pname">${esc(p.name)}</span>
           ${p.active ? "" : `<span class="off">OCULTO</span>`}
@@ -320,6 +337,7 @@
     box.querySelectorAll("button[data-act]").forEach((b) =>
       b.addEventListener("click", () => rowAction(b.dataset.act, b.dataset.id))
     );
+    paintToggleLabel();
   }
 
   async function rowAction(act, id) {
@@ -344,9 +362,12 @@
     $("fPrice").value = p?.price ?? "";
     $("fDesc").value = p?.description || "";
     $("fActive").checked = p ? !!p.active : true;
-    currentPhotoURL = p?.image_url || "";
-    paintPhotoPreview(currentPhotoURL);
-    $("fPhoto").value = "";
+    const urls = Array.isArray(p?.image_urls) && p.image_urls.length ? p.image_urls : (p?.image_url ? [p.image_url] : []);
+    currentPhotoURLs = [urls[0] || "", urls[1] || ""];
+    paintPhotoPreview("photoPreview1", currentPhotoURLs[0]);
+    paintPhotoPreview("photoPreview2", currentPhotoURLs[1]);
+    $("fPhoto1").value = "";
+    $("fPhoto2").value = "";
     if (p?.category) $("fCategory").value = p.category;
     refreshSubcategories(p?.subcategory || "");
     if (p?.subcategory) $("fSubcategory").value = p.subcategory;
@@ -365,19 +386,19 @@
     editingId = null;
   }
 
-  function paintPhotoPreview(url) {
-    $("photoPreview").innerHTML = url
+  function paintPhotoPreview(elId, url) {
+    document.getElementById(elId).innerHTML = url
       ? `<img src="${esc(url)}" alt="Vista previa" />`
-      : `Sin foto.<br>Pulsa “Elegir foto”.`;
+      : `Sin foto.<br>Pulsa “Elegir”.`;
   }
 
-  async function onPhotoPreview() {
-    const f = $("fPhoto").files[0];
+  async function onPhotoPreview(inputId, previewId) {
+    const f = document.getElementById(inputId).files[0];
     if (!f) return;
     try {
       const url = await fileToCompressedDataURL(f);
-      paintPhotoPreview(url);
-      $("photoPreview").dataset.newPhoto = url;
+      paintPhotoPreview(previewId, url);
+      document.getElementById(previewId).dataset.newPhoto = url;
     } catch (_) {
       toast("No se pudo leer esa imagen.", false);
     }
@@ -435,8 +456,10 @@
     const subcategory = $("fSubcategory").disabled ? "" : $("fSubcategory").value;
     const sizes = [...$("sizesBox").querySelectorAll("input:checked")].map((i) => i.value);
     const colors = pickedColors.map((c) => ({ name: c.name, hex: c.hex }));
-    const newPhoto = $("photoPreview").dataset.newPhoto || "";
-    delete $("photoPreview").dataset.newPhoto;
+    const newPhoto1 = $("photoPreview1").dataset.newPhoto || "";
+    const newPhoto2 = $("photoPreview2").dataset.newPhoto || "";
+    delete $("photoPreview1").dataset.newPhoto;
+    delete $("photoPreview2").dataset.newPhoto;
 
     // Validación pensada para no-técnicos
     if (name.length < 2) return void ($("formError").textContent = "Ponle un nombre (mínimo 2 letras).");
@@ -444,33 +467,45 @@
     if (!description) return void ($("formError").textContent = "Añade una descripción corta.");
     const validCats = (typeof CATEGORIES !== "undefined" ? CATEGORIES : []).map((c) => c.slug);
     if (!validCats.includes(category)) return void ($("formError").textContent = "Elige una categoría de la lista.");
-    let image_url = currentPhotoURL;
-    if (newPhoto) {
+    let url1 = currentPhotoURLs[0] || "";
+    let url2 = currentPhotoURLs[1] || "";
+    const fresh = [["photoPreview1", newPhoto1, 0], ["photoPreview2", newPhoto2, 1]];
+    for (const [, dataURL, idx] of fresh) {
+      if (!dataURL) continue;
       if (CLOUD) {
         $("saveBtn").disabled = true;
-        try { image_url = await uploadPhoto(newPhoto); }
-        catch (err) {
+        try {
+          const up = await uploadPhoto(dataURL);
+          if (idx === 0) url1 = up; else url2 = up;
+        } catch (err) {
           $("saveBtn").disabled = false;
-          $("formError").textContent = "No se pudo subir la foto: " + (err.message || "");
+          $("formError").textContent = "No se pudo subir la foto " + (idx + 1) + ": " + (err.message || "");
           return;
         } finally { $("saveBtn").disabled = false; }
       } else {
-        image_url = newPhoto; // demo local
+        if (idx === 0) url1 = dataURL; else url2 = dataURL; // demo local
       }
     }
-    if (!image_url) return void ($("formError").textContent = "Falta la foto: pulsa “Elegir foto”.");
+    if (!url1 || !url2) return void ($("formError").textContent = "Faltan fotos: añade la foto 1 y la foto 2.");
+    currentPhotoURLs = [url1, url2];
 
     const record = {
       name, price, description, category, subcategory,
-      sizes, colors, image_url,
+      sizes, colors, image_url: url1, image_urls: [url1, url2],
       active: $("fActive").checked
     };
     $("saveBtn").disabled = true;
     try {
       if (editingId) await persist({ ...record, id: editingId }, true);
       else await persist(record, false);
-      toast(editingId ? "Producto actualizado." : "Producto creado: ya sale en su categoría.");
-      closeForm();
+      const wasEditing = !!editingId;
+      if (wasEditing) {
+        closeForm();
+        toast("Producto actualizado.");
+      } else {
+        openForm(null); // formulario limpio para el siguiente, sin scroll largo
+        toast("Producto creado: sigue con el siguiente.");
+      }
       await reloadList();
     } catch (err) {
       $("formError").textContent = err.message || "No se pudo guardar.";
@@ -481,11 +516,22 @@
 
   async function persist(record, isUpdate) {
     if (CLOUD) {
+      const withoutGallery = ({ image_urls, ...rest }) => rest;
+      const errIsMissingColumn = (e) => e && /image_urls/i.test(e.message || "");
       if (isUpdate) {
-        const { error } = await sb.from("products").update(record).eq("id", record.id);
+        let { error } = await sb.from("products").update(record).eq("id", record.id);
+        if (error && errIsMissingColumn(error)) {
+          // La migración SQL aún no se aplicó: guarda al menos la foto 1
+          ({ error } = await sb.from("products").update(withoutGallery(record)).eq("id", record.id));
+          if (!error) toast("Guardado con 1 foto: ejecuta migration_multi_image.sql en Supabase para activar 2 fotos.", false);
+        }
         if (error) throw error;
       } else {
-        const { error } = await sb.from("products").insert(record);
+        let { error } = await sb.from("products").insert(record);
+        if (error && errIsMissingColumn(error)) {
+          ({ error } = await sb.from("products").insert(withoutGallery(record)));
+          if (!error) toast("Guardado con 1 foto: ejecuta migration_multi_image.sql en Supabase para activar 2 fotos.", false);
+        }
         if (error) throw error;
       }
       return;

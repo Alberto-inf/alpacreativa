@@ -35,6 +35,10 @@ const ALPA_STORE = (() => {
     colors = colors.map((c) => typeof c === "string"
       ? { name: c, hex: "#999999" }
       : { name: c.name, hex: c.hex || "#999999" });
+    const first = row.image_url || "";
+    const gallery = Array.isArray(row.image_urls) && row.image_urls.length
+      ? row.image_urls.filter(Boolean)
+      : (first ? [first] : []);
     return {
       id: String(row.id),
       name: row.name || "",
@@ -42,7 +46,8 @@ const ALPA_STORE = (() => {
       category: row.category || "",
       subcategory: row.subcategory || "",
       description: row.description || "",
-      img: row.image_url || "",
+      img: first || gallery[0] || "",
+      images: gallery.length ? gallery : (first ? [first] : []),
       sizes,
       colors,
       active: !!row.active
@@ -57,7 +62,7 @@ const ALPA_STORE = (() => {
     if (!sb) return 0; // sin backend -> vacío a propósito
     const { data, error } = await sb
       .from("products")
-      .select("id,name,description,price,category,subcategory,sizes,colors,image_url,active")
+      .select("id,name,description,price,category,subcategory,sizes,colors,image_url,image_urls,active")
       .eq("active", true)
       .order("created_at", { ascending: false })
       .limit(1000);

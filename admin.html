@@ -52,6 +52,8 @@
     .link-btn:hover { border-color: var(--primary); color: var(--primary); }
     .link-btn.danger:hover { border-color: #c0392b; color: #c0392b; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    #listWrap[hidden] { display: none; }
+    #toggleListBtn[aria-expanded="true"] { border-color: var(--primary); color: var(--primary); }
     .form-grid .full { grid-column: 1 / -1; }
     @media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } .photo-zone { grid-template-columns: 1fr; } }
   </style>
@@ -89,34 +91,50 @@
 
       <!-- PANEL -->
       <section id="panelSection" style="display:none">
-        <div class="admin-card">
+          <div class="admin-card">
           <div class="toolbar">
             <div class="btn-row">
               <button class="btn btn--primary" id="newBtn">+ Nuevo producto</button>
+              <button class="link-btn" id="toggleListBtn" aria-expanded="false">Ver productos (0)</button>
               <button class="link-btn" id="logoutBtn">Cerrar sesión</button>
               <span id="userLabel" style="font-size:13px;color:var(--muted)"></span>
             </div>
-            <div class="btn-row">
-              <input type="search" id="searchInput" placeholder="Buscar por nombre..." />
-              <select id="filterCat"><option value="">Todas las categorías</option></select>
-            </div>
           </div>
-          <div class="plist" id="productList"></div>
+          <div id="listWrap" hidden>
+            <div class="toolbar" style="margin-top:14px">
+              <div class="btn-row">
+                <input type="search" id="searchInput" placeholder="Buscar por nombre..." />
+                <select id="filterCat"><option value="">Todas las categorías</option></select>
+              </div>
+            </div>
+            <div class="plist" id="productList"></div>
+          </div>
         </div>
 
         <div class="admin-card" id="formCard" style="display:none">
           <h2 style="font-family:'Playfair Display',serif;margin:0 0 4px" id="formTitle">Nuevo producto</h2>
           <p style="color:var(--muted);font-size:14px;margin:0 0 18px">La categoría es cerrada: solo las 11 existentes, para que cada artículo salga en su sitio.</p>
           <form id="productForm" novalidate>
-            <div class="photo-zone full" style="grid-column:1/-1;margin-bottom:14px">
-              <div class="photo-preview" id="photoPreview">Sin foto.<br>Pulsa “Elegir foto”.</div>
-              <div>
-                <div class="admin-field">
-                  <label for="fPhoto">Foto * (JPG/PNG desde el ordenador)</label>
-                  <input type="file" id="fPhoto" accept="image/jpeg,image/png,image/webp" />
+            <div class="full" style="grid-column:1/-1;margin-bottom:14px;display:grid;gap:14px">
+              <div class="photo-zone">
+                <div class="photo-preview" id="photoPreview1">Foto 1.<br>Pulsa “Elegir foto 1”.</div>
+                <div>
+                  <div class="admin-field">
+                    <label for="fPhoto1">Foto 1 * (principal, JPG/PNG desde el ordenador)</label>
+                    <input type="file" id="fPhoto1" accept="image/jpeg,image/png,image/webp" />
+                  </div>
                 </div>
-                <p style="font-size:13px;color:var(--muted);margin:0">Se comprime sola a ~1600px para no llenar el plan gratis. Si editas sin elegir foto nueva, se mantiene la actual.</p>
               </div>
+              <div class="photo-zone">
+                <div class="photo-preview" id="photoPreview2">Foto 2.<br>Pulsa “Elegir foto 2”.</div>
+                <div>
+                  <div class="admin-field">
+                    <label for="fPhoto2">Foto 2 * (segunda vista, JPG/PNG)</label>
+                    <input type="file" id="fPhoto2" accept="image/jpeg,image/png,image/webp" />
+                  </div>
+                </div>
+              </div>
+              <p style="font-size:13px;color:var(--muted);margin:0">Se comprimen solas a ~1600px para no llenar el plan gratis. Si editas sin elegir foto nueva, se mantiene la actual. Mínimo 2 fotos: se ven al seleccionar el producto en la tienda.</p>
             </div>
             <div class="form-grid">
               <div class="admin-field"><label for="fName">Nombre *</label><input type="text" id="fName" maxlength="120" placeholder="Ej. Camiseta BETA PREMIUM" /></div>

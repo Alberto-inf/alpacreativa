@@ -251,6 +251,7 @@ function renderProducts() {
     <article class="product-card" data-id="${p.id}" data-aos="fade-up" data-aos-delay="${(i % 4) * 80}">
       <div class="product-card__img">
         ${p.subcategory ? '<span class="product-card__tag">' + p.subcategory + '</span>' : ''}
+        ${(p.images && p.images.length > 1) ? `<span class="product-card__count">📷 ${p.images.length}</span>` : ''}
         <img src="${p.img}" alt="${p.name}" width="600" height="600" loading="lazy" onerror="this.src='https://placehold.co/400x400/5d768b/f8efe5?text=ALPA'" />
       </div>
       <div class="product-card__body">
@@ -309,8 +310,11 @@ function openProductModal(id) {
   state.modalText = "";
   state.modalQty = 1;
 
-  document.getElementById("modalImg").src = product.img;
-  document.getElementById("modalImg").alt = product.name;
+  if (window.ALPA_COMPONENTS && ALPA_COMPONENTS.paintModalGallery) ALPA_COMPONENTS.paintModalGallery(product);
+  else {
+    document.getElementById("modalImg").src = product.img;
+    document.getElementById("modalImg").alt = product.name;
+  }
   document.getElementById("modalTitle").textContent = product.name;
   document.getElementById("modalCat").textContent = getCategoryName(product.category);
   document.getElementById("modalDesc").textContent = product.description;

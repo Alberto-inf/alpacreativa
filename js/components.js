@@ -166,7 +166,7 @@ const ALPA_COMPONENTS = {
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <button class="modal__close" id="modalClose" aria-label="Cerrar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         <div class="modal__grid">
-          <div class="modal__media"><img id="modalImg" src="" alt="" width="600" height="600" /><span class="modal__tag" id="modalTag"></span></div>
+          <div class="modal__media"><img id="modalImg" src="" alt="" width="600" height="600" /><span class="modal__tag" id="modalTag"></span><div class="modal__thumbs" id="modalThumbs"></div></div>
           <div class="modal__info">
             <span class="modal__cat" id="modalCat"></span>
             <h2 id="modalTitle"></h2>
@@ -199,6 +199,37 @@ const ALPA_COMPONENTS = {
 
   renderToast() {
     return `<div class="toast" id="toast" role="status" aria-live="polite"></div>`;
+  },
+
+  paintModalGallery(product) {
+    const imgs = (product && Array.isArray(product.images) && product.images.length)
+      ? product.images.filter(Boolean)
+      : (product && product.img ? [product.img] : []);
+    const main = document.getElementById("modalImg");
+    const thumbs = document.getElementById("modalThumbs");
+    if (main && imgs.length) {
+      main.src = imgs[0];
+      main.alt = (product && product.name) || "";
+    }
+    if (!thumbs) return;
+    if (imgs.length < 2) {
+      thumbs.innerHTML = "";
+      thumbs.style.display = "none";
+      return;
+    }
+    thumbs.style.display = "";
+    thumbs.innerHTML = imgs.map((u, i) =>
+      `<button type="button" data-thumb="${i}" class="${i === 0 ? "modal__thumb--active" : ""}" aria-label="Ver foto ${i + 1}"><img src="${u}" alt="" loading="lazy" /></button>`
+    ).join("");
+    thumbs.querySelectorAll("[data-thumb]").forEach((b) =>
+      b.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const i = Number(b.dataset.thumb);
+        if (main && imgs[i]) main.src = imgs[i];
+        thumbs.querySelectorAll("[data-thumb]").forEach((x) =>
+          x.classList.toggle("modal__thumb--active", x === b));
+      })
+    );
   },
 
   renderCookieBanner() {
