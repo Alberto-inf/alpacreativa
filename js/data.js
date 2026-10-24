@@ -309,13 +309,18 @@ const LEGACY_PRODUCTS = [
 const PRODUCTS = [];
 
 const GALLERY = [
-  { url: "img/imghero/055d218e-820e-4e21-bfe6-cbf731a6ca23.JPG", label: "Trabajo real 1" },
-  { url: "img/imghero/067a599c-8e1c-4d17-bc8c-2755894bdb5d.JPG", label: "Trabajo real 2" },
-  { url: "img/imghero/56b28544-df31-4f76-9271-fe907fc98c57.JPG", label: "Trabajo real 3" },
-  { url: "img/imghero/7c749546-6e75-43a6-8819-395811d7902c.JPG", label: "Trabajo real 4" },
-  { url: "img/imghero/a069d840-8547-4cd0-97d7-ecd303327812.JPG", label: "Trabajo real 5" },
-  { url: "img/imghero/b9399f84-883a-45cc-a7a3-6f3972699bcf.JPG", label: "Trabajo real 6" },
-  { url: "img/imghero/f200af6f-91b1-4a72-be66-8248aec9e95e.JPG", label: "Trabajo real 7" }
+  { url: "img/imgnuevas/d9aa38fc-6ed4-47e0-afa0-39ca23615e3c.JPG", label: "Trabajo real 1" },
+  { url: "img/imgnuevas/1edd1695-8fcd-4f89-b0d0-208f9383cb96.JPG", label: "Trabajo real 2" },
+  { url: "img/imgnuevas/fbb6a138-8eb0-4084-b173-7b888913277b.JPG", label: "Trabajo real 3" },
+  { url: "img/imgnuevas/ad48659b-bf66-4303-8ada-c4708c894ad1.JPG", label: "Trabajo real 4" },
+  { url: "img/imgnuevas/7c5a6cf0-46f8-48f2-979d-2d99b08c2476.JPG", label: "Trabajo real 5" },
+  { url: "img/imgnuevas/8a2e1f80-e0a3-4d6e-9bca-64f31eae8d36.JPG", label: "Trabajo real 6" },
+  { url: "img/imgnuevas/339b5a42-0e55-4db2-9bfa-547533977785.JPG", label: "Trabajo real 7" },
+  { url: "img/imgnuevas/f3624da4-dd1c-4f3b-b555-fdc1a393fa5c.JPG", label: "Trabajo real 8" },
+  { url: "img/imgnuevas/4b5206f1-cfa5-4c71-a0df-5ee95eaaf002.JPG", label: "Trabajo real 9" },
+  { url: "img/imgnuevas/1a12921b-b68a-4b6f-a856-e2ee5b682cc2.JPG", label: "Trabajo real 10" },
+  { url: "img/imgnuevas/0a459398-88c9-4071-92f9-6d764d1e03b0.JPG", label: "Trabajo real 11" },
+  { url: "img/imgnuevas/619687e1-ae8b-42b9-b18a-5cb99e39eee2.JPG", label: "Trabajo real 12" }
 ];
 
 const TESTIMONIALS = [
