@@ -850,6 +850,7 @@ ul { list-style: none; }
 }
 .gallery__item:hover::after { opacity: 1; }
 .gallery__label {
+  display: none;
   position: absolute;
   bottom: 16px;
   left: 16px;
