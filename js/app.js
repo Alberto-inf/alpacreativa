@@ -33,10 +33,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (typeof ALPA_STORE !== "undefined") await ALPA_STORE.refresh();
   } catch (_) {}
 
+  // Fotos de portada editables desde admin (si existen; si no, quedan las del HTML)
+  try {
+    if (typeof ALPA_STORE !== "undefined" && ALPA_STORE.getHeroImages) {
+      applyHeroImages(await ALPA_STORE.getHeroImages());
+    }
+  } catch (_) {}
+
+  // Fotos de "Nuestra galería" editables desde admin (si existen; si no, las de data.js)
+  let galleryLive = [];
+  try {
+    if (typeof ALPA_STORE !== "undefined" && ALPA_STORE.getGalleryImages) {
+      const rows = await ALPA_STORE.getGalleryImages();
+      galleryLive = (rows || []).map((r) => ({
+        url: r.image_url,
+        label: "Trabajo real " + r.slot
+      })).filter((g) => g.url);
+    }
+  } catch (_) {}
+
   renderCategoryFilter();
   renderCategories();
   renderProducts();
-  renderGallery();
+  renderGallery(galleryLive);
   renderTestimonials();
   bindUI();
   bindModalEvents();
@@ -54,6 +73,21 @@ function initAOS() {
       offset: 60
     });
   }
+}
+
+/* PORTADA (hero) — fotos gestionadas desde la pestaña "Portada" del admin */
+function applyHeroImages(rows) {
+  if (!Array.isArray(rows) || !rows.length) return;
+  rows.forEach((r) => {
+    const slot = Number(r.slot);
+    if (slot < 1 || slot > 4 || !r.image_url) return;
+    const img = document.getElementById("heroImg" + slot);
+    if (img) img.src = r.image_url;
+    if (slot === 1) {
+      const preload = document.querySelector('link[rel="preload"][as="image"]');
+      if (preload) preload.href = r.image_url;
+    }
+  });
 }
 
 /* NAVBAR — now handled by ALPA_COMPONENTS.initNav() */
@@ -169,10 +203,11 @@ function renderProducts() {
 }
 
 /* GALLERY */
-function renderGallery() {
+function renderGallery(custom) {
   const grid = document.getElementById("galleryGrid");
   if (!grid) return;
-  grid.innerHTML = GALLERY.map((g, i) => `
+  const list = (Array.isArray(custom) && custom.length) ? custom : GALLERY;
+  grid.innerHTML = list.map((g, i) => `
     <div class="gallery__item" data-aos="zoom-in" data-aos-delay="${(i % 4) * 80}">
       <img src="${g.url}" alt="${g.label}" width="600" height="600" loading="lazy" onerror="this.src='https://placehold.co/600x600/cbb39b/fff?text=ALPA'"/>
       <span class="gallery__label">${g.label}</span>
@@ -344,6 +379,15 @@ function bindModalEvents() {
     if (e.key === "Escape") {
       closeProductModal();
       Cart.close();
+    }
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      const t = e.target;
+      const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
+      const overlay = document.getElementById("productModal");
+      if (!typing && overlay && overlay.classList.contains("modal-overlay--open") &&
+          window.ALPA_COMPONENTS && ALPA_COMPONENTS.stepModalImage) {
+        ALPA_COMPONENTS.stepModalImage(e.key === "ArrowRight" ? 1 : -1);
+      }
     }
   });
 

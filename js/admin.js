@@ -12,12 +12,46 @@
   const DEMO_KEY = "alpa_admin_products";
   const BUCKET = "productos";
 
+  // Portada (hero): 4 fotos del inicio, independientes de los productos.
+  const HERO_SLOTS = 4;
+  const HERO_DEFAULT = [
+    "img/imgnuevas/fcbd1b4e-2006-401c-935c-d4e9af1eefb4.JPG",
+    "img/imgnuevas/fc746d6d-8390-4207-9755-6e5955724f1c.JPG",
+    "img/imgnuevas/990bf987-5538-45df-8df6-d823427fae09.JPG",
+    "img/imgnuevas/a66d353c-67b8-4f94-8d7b-e7f039782620.JPG"
+  ];
+  const HERO_DEMO_KEY = "alpa_admin_hero";
+
+  // Galería del inicio: 12 fotos, independientes de los productos.
+  const GALLERY_SLOTS = 12;
+  const GALLERY_DEFAULT = [
+    "img/imgnuevas/d9aa38fc-6ed4-47e0-afa0-39ca23615e3c.JPG",
+    "img/imgnuevas/1edd1695-8fcd-4f89-b0d0-208f9383cb96.JPG",
+    "img/imgnuevas/fbb6a138-8eb0-4084-b173-7b888913277b.JPG",
+    "img/imgnuevas/ad48659b-bf66-4303-8ada-c4708c894ad1.JPG",
+    "img/imgnuevas/7c5a6cf0-46f8-48f2-979d-2d99b08c2476.JPG",
+    "img/imgnuevas/8a2e1f80-e0a3-4d6e-9bca-64f31eae8d36.JPG",
+    "img/imgnuevas/339b5a42-0e55-4db2-9bfa-547533977785.JPG",
+    "img/imgnuevas/f3624da4-dd1c-4f3b-b555-fdc1a393fa5c.JPG",
+    "img/imgnuevas/4b5206f1-cfa5-4c71-a0df-5ee95eaaf002.JPG",
+    "img/imgnuevas/1a12921b-b68a-4b6f-a856-e2ee5b682cc2.JPG",
+    "img/imgnuevas/0a459398-88c9-4071-92f9-6d764d1e03b0.JPG",
+    "img/imgnuevas/619687e1-ae8b-42b9-b18a-5cb99e39eee2.JPG"
+  ];
+  const GALLERY_DEMO_KEY = "alpa_admin_gallery";
+
   let sb = null;
   let session = null;
   let editingId = null;
   let currentPhotoURLs = ["", ""]; // foto1 (principal) + foto2 (segunda vista)
   let cache = []; // productos cargados
   let pickedColors = []; // colores libres del formulario [{name, hex}]
+  let heroURLs = HERO_DEFAULT.slice();
+  let heroNew = ["", "", "", ""];
+  let heroLoaded = false;
+  let galleryURLs = GALLERY_DEFAULT.slice();
+  let galleryNew = new Array(GALLERY_SLOTS).fill("");
+  let galleryLoaded = false;
 
   if (CLOUD && window.supabase) {
     sb = window.supabase.createClient(
@@ -37,6 +71,9 @@
     buildFixedLists();
     bindAuth();
     bindPanel();
+    bindTabs();
+    bindHero();
+    bindGallery();
     restoreDemoSession();
   });
 
@@ -49,6 +86,7 @@
       ALPA_COMPONENTS.mount("toastSlot", ALPA_COMPONENTS.renderToast());
       ALPA_COMPONENTS.initNav();
       ALPA_COMPONENTS.initMenuToggle();
+      ALPA_COMPONENTS.initCookieBanner();
     } catch (_) {}
   }
 
@@ -277,6 +315,235 @@
     });
   }
 
+  /* ---------- Pestañas: Productos / Portada ---------- */
+  function bindTabs() {
+    document.querySelectorAll(".admin-tab").forEach((b) =>
+      b.addEventListener("click", () => showPane(b.dataset.pane))
+    );
+  }
+
+  function showPane(paneId) {
+    document.querySelectorAll(".admin-tab").forEach((b) =>
+      b.classList.toggle("admin-tab--active", b.dataset.pane === paneId)
+    );
+    ["productsPane", "heroPane", "galleryPane"].forEach((id) => {
+      const el = $(id);
+      if (el) el.style.display = id === paneId ? "" : "none";
+    });
+    if (paneId === "heroPane") loadHero();
+    if (paneId === "galleryPane") loadGallery();
+  }
+
+  /* ---------- Portada (hero) ---------- */
+  function bindHero() {
+    for (let i = 0; i < HERO_SLOTS; i++) {
+      const input = $("heroPhoto" + (i + 1));
+      if (input) input.addEventListener("change", () => onHeroPhoto("heroPhoto" + (i + 1), i));
+    }
+    $("saveHeroBtn").addEventListener("click", saveHero);
+    $("resetHeroBtn").addEventListener("click", resetHero);
+  }
+
+  async function loadHero() {
+    if (heroLoaded) return;
+    heroLoaded = true;
+    heroURLs = HERO_DEFAULT.slice();
+    $("heroError").textContent = "";
+    if (CLOUD) {
+      try {
+        const { data, error } = await sb.from("hero_images").select("slot,image_url");
+        if (error) throw error;
+        (data || []).forEach((r) => {
+          const i = Number(r.slot) - 1;
+          if (i >= 0 && i < HERO_SLOTS && r.image_url) heroURLs[i] = r.image_url;
+        });
+      } catch (err) {
+        heroLoaded = false;
+        $("heroError").textContent = /hero_images/i.test(err.message || "")
+          ? "Falta ejecutar supabase/inicio_imagenes.sql en Supabase para activar esta pestaña."
+          : (err.message || "No se pudo cargar la portada.");
+      }
+    } else {
+      try {
+        const saved = JSON.parse(localStorage.getItem(HERO_DEMO_KEY) || "null");
+        if (Array.isArray(saved)) saved.forEach((u, i) => { if (i < HERO_SLOTS && u) heroURLs[i] = u; });
+      } catch (_) {}
+    }
+    paintHero();
+  }
+
+  function paintHero() {
+    heroNew = ["", "", "", ""];
+    for (let i = 0; i < HERO_SLOTS; i++) {
+      paintPhotoPreview("heroPreview" + (i + 1), heroURLs[i]);
+      const input = $("heroPhoto" + (i + 1));
+      if (input) input.value = "";
+    }
+  }
+
+  async function onHeroPhoto(inputId, idx) {
+    const f = document.getElementById(inputId).files[0];
+    if (!f) return;
+    try {
+      const url = await fileToCompressedDataURL(f);
+      heroNew[idx] = url;
+      paintPhotoPreview("heroPreview" + (idx + 1), url);
+    } catch (_) {
+      toast("No se pudo leer esa imagen.", false);
+    }
+  }
+
+  async function saveHero() {
+    const errEl = $("heroError");
+    const btn = $("saveHeroBtn");
+    errEl.textContent = "";
+    btn.disabled = true;
+    try {
+      for (let i = 0; i < HERO_SLOTS; i++) {
+        if (!heroNew[i]) continue;
+        heroURLs[i] = CLOUD ? await uploadPhoto(heroNew[i], "hero/") : heroNew[i];
+      }
+      if (CLOUD) {
+        const rows = heroURLs.map((url, i) => ({
+          slot: i + 1,
+          image_url: url || "",
+          updated_at: new Date().toISOString()
+        }));
+        const { error } = await sb.from("hero_images").upsert(rows, { onConflict: "slot" });
+        if (error) throw error;
+      } else {
+        try { localStorage.setItem(HERO_DEMO_KEY, JSON.stringify(heroURLs)); } catch (_) {}
+      }
+      paintHero();
+      toast("Portada actualizada.");
+    } catch (err) {
+      errEl.textContent = /hero_images/i.test(err.message || "")
+        ? "Falta ejecutar supabase/inicio_imagenes.sql en Supabase para activar esta pestaña."
+        : (err.message || "No se pudo guardar la portada.");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function resetHero() {
+    heroURLs = HERO_DEFAULT.slice();
+    $("heroError").textContent = "";
+    paintHero();
+    toast("Portada restaurada. Pulsa «Guardar portada» para confirmar.");
+  }
+
+  /* ---------- Galería del inicio ---------- */
+  function bindGallery() {
+    buildGallerySlots();
+    $("saveGalleryBtn").addEventListener("click", saveGallery);
+    $("resetGalleryBtn").addEventListener("click", resetGallery);
+  }
+
+  function buildGallerySlots() {
+    const box = $("galleryGrid");
+    if (!box) return;
+    box.innerHTML = Array.from({ length: GALLERY_SLOTS }, (_, i) => i + 1).map((n) => `
+      <div class="hero-slot">
+        <div class="photo-preview" id="galleryPreview${n}">Foto ${n}.</div>
+        <div class="admin-field">
+          <label for="galleryPhoto${n}">Foto ${n}</label>
+          <input type="file" id="galleryPhoto${n}" accept="image/jpeg,image/png,image/webp" />
+        </div>
+      </div>`).join("");
+    for (let i = 0; i < GALLERY_SLOTS; i++) {
+      const input = $("galleryPhoto" + (i + 1));
+      if (input) input.addEventListener("change", () => onGalleryPhoto("galleryPhoto" + (i + 1), i));
+    }
+  }
+
+  async function loadGallery() {
+    if (galleryLoaded) return;
+    galleryLoaded = true;
+    galleryURLs = GALLERY_DEFAULT.slice();
+    $("galleryError").textContent = "";
+    if (CLOUD) {
+      try {
+        const { data, error } = await sb.from("gallery_images").select("slot,image_url");
+        if (error) throw error;
+        (data || []).forEach((r) => {
+          const i = Number(r.slot) - 1;
+          if (i >= 0 && i < GALLERY_SLOTS && r.image_url) galleryURLs[i] = r.image_url;
+        });
+      } catch (err) {
+        galleryLoaded = false;
+        $("galleryError").textContent = /gallery_images/i.test(err.message || "")
+          ? "Falta ejecutar supabase/inicio_imagenes.sql en Supabase para activar esta pestaña."
+          : (err.message || "No se pudo cargar la galería.");
+      }
+    } else {
+      try {
+        const saved = JSON.parse(localStorage.getItem(GALLERY_DEMO_KEY) || "null");
+        if (Array.isArray(saved)) saved.forEach((u, i) => { if (i < GALLERY_SLOTS && u) galleryURLs[i] = u; });
+      } catch (_) {}
+    }
+    paintGallery();
+  }
+
+  function paintGallery() {
+    galleryNew = new Array(GALLERY_SLOTS).fill("");
+    for (let i = 0; i < GALLERY_SLOTS; i++) {
+      paintPhotoPreview("galleryPreview" + (i + 1), galleryURLs[i]);
+      const input = $("galleryPhoto" + (i + 1));
+      if (input) input.value = "";
+    }
+  }
+
+  async function onGalleryPhoto(inputId, idx) {
+    const f = document.getElementById(inputId).files[0];
+    if (!f) return;
+    try {
+      const url = await fileToCompressedDataURL(f);
+      galleryNew[idx] = url;
+      paintPhotoPreview("galleryPreview" + (idx + 1), url);
+    } catch (_) {
+      toast("No se pudo leer esa imagen.", false);
+    }
+  }
+
+  async function saveGallery() {
+    const errEl = $("galleryError");
+    const btn = $("saveGalleryBtn");
+    errEl.textContent = "";
+    btn.disabled = true;
+    try {
+      for (let i = 0; i < GALLERY_SLOTS; i++) {
+        if (!galleryNew[i]) continue;
+        galleryURLs[i] = CLOUD ? await uploadPhoto(galleryNew[i], "galeria/") : galleryNew[i];
+      }
+      if (CLOUD) {
+        const rows = galleryURLs.map((url, i) => ({
+          slot: i + 1,
+          image_url: url || "",
+          updated_at: new Date().toISOString()
+        }));
+        const { error } = await sb.from("gallery_images").upsert(rows, { onConflict: "slot" });
+        if (error) throw error;
+      } else {
+        try { localStorage.setItem(GALLERY_DEMO_KEY, JSON.stringify(galleryURLs)); } catch (_) {}
+      }
+      paintGallery();
+      toast("Galería actualizada.");
+    } catch (err) {
+      errEl.textContent = /gallery_images/i.test(err.message || "")
+        ? "Falta ejecutar supabase/inicio_imagenes.sql en Supabase para activar esta pestaña."
+        : (err.message || "No se pudo guardar la galería.");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function resetGallery() {
+    galleryURLs = GALLERY_DEFAULT.slice();
+    $("galleryError").textContent = "";
+    paintGallery();
+    toast("Galería restaurada. Pulsa «Guardar galería» para confirmar.");
+  }
+
   async function onLogout() {
     try {
       if (CLOUD) await sb.auth.signOut();
@@ -434,10 +701,10 @@
     return new Blob([arr], { type: mime });
   }
 
-  async function uploadPhoto(dataURL) {
+  async function uploadPhoto(dataURL, folder = "") {
     // dataURL ya comprimido del preview
     const blob = dataURLtoBlob(dataURL);
-    const safe = Date.now() + "_" + Math.random().toString(36).slice(2, 8) + ".jpg";
+    const safe = folder + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + ".jpg";
     const { error } = await sb.storage.from(BUCKET).upload(safe, blob, {
       contentType: "image/jpeg", upsert: false
     });
@@ -568,3 +835,4 @@
     toast("Producto eliminado (demo).");
   }
 })();
+

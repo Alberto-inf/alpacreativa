@@ -3,7 +3,7 @@ const ALPA_COMPONENTS = {
     return `
     <div class="topbar">
       <div class="container topbar__inner">
-        <span>Envío gratis a partir de 60€</span>
+        <span>Envío gratis a partir de 100€</span>
         <span class="topbar__sep">·</span>
         <span>Personalización con tu diseño</span>
         <span class="topbar__sep">·</span>
@@ -131,7 +131,7 @@ const ALPA_COMPONENTS = {
         </div>
       </div>
       <div class="footer__bottom">
-        <p>© 2026 ALPA Creativa · Todos los derechos reservados · <a href="#"><!-- TODO: añadir página -->Política de privacidad</a> · <a href="#"><!-- TODO: añadir página -->Aviso legal</a></p>
+        <p>© 2026 ALPA Creativa · Todos los derechos reservados · <a href="#"><!-- TODO: añadir página -->Política de privacidad</a> · <a href="#"><!-- TODO: añadir página -->Aviso legal</a> &middot; <button type="button" class="footer__link-btn" id="cookieSettings">Gestionar cookies</button></p>
       </div>
     </footer>`;
   },
@@ -166,7 +166,18 @@ const ALPA_COMPONENTS = {
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <button class="modal__close" id="modalClose" aria-label="Cerrar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         <div class="modal__grid">
-          <div class="modal__media"><img id="modalImg" src="" alt="" width="600" height="600" /><span class="modal__tag" id="modalTag"></span><div class="modal__thumbs" id="modalThumbs"></div></div>
+          <div class="modal__media">
+            <img id="modalImg" src="" alt="" width="600" height="600" />
+            <span class="modal__tag" id="modalTag"></span>
+            <button type="button" class="modal__nav modal__nav--prev" id="modalPrev" aria-label="Ver foto anterior" hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <button type="button" class="modal__nav modal__nav--next" id="modalNext" aria-label="Ver siguiente foto" hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <span class="modal__counter" id="modalCounter" hidden></span>
+            <div class="modal__thumbs" id="modalThumbs"></div>
+          </div>
           <div class="modal__info">
             <span class="modal__cat" id="modalCat"></span>
             <h2 id="modalTitle"></h2>
@@ -201,35 +212,93 @@ const ALPA_COMPONENTS = {
     return `<div class="toast" id="toast" role="status" aria-live="polite"></div>`;
   },
 
+  _modalImages: [],
+  _modalIndex: 0,
+
   paintModalGallery(product) {
     const imgs = (product && Array.isArray(product.images) && product.images.length)
       ? product.images.filter(Boolean)
       : (product && product.img ? [product.img] : []);
+    this._modalImages = imgs;
+    this._modalIndex = 0;
     const main = document.getElementById("modalImg");
     const thumbs = document.getElementById("modalThumbs");
-    if (main && imgs.length) {
-      main.src = imgs[0];
+    const prev = document.getElementById("modalPrev");
+    const next = document.getElementById("modalNext");
+    const counter = document.getElementById("modalCounter");
+    const media = main ? main.closest(".modal__media") : null;
+    if (main) {
+      main.src = imgs[0] || "";
       main.alt = (product && product.name) || "";
+    }
+    if (prev && !prev.dataset.bound) {
+      prev.dataset.bound = "1";
+      prev.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        this.stepModalImage(-1);
+      });
+    }
+    if (next && !next.dataset.bound) {
+      next.dataset.bound = "1";
+      next.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        this.stepModalImage(1);
+      });
+    }
+    if (media && !media.dataset.swipeBound) {
+      media.dataset.swipeBound = "1";
+      let startX = 0;
+      media.addEventListener("touchstart", (ev) => {
+        startX = ev.touches[0].clientX;
+      }, { passive: true });
+      media.addEventListener("touchend", (ev) => {
+        const dx = ev.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 40) this.stepModalImage(dx < 0 ? 1 : -1);
+      }, { passive: true });
     }
     if (!thumbs) return;
     if (imgs.length < 2) {
       thumbs.innerHTML = "";
       thumbs.style.display = "none";
+      if (prev) prev.hidden = true;
+      if (next) next.hidden = true;
+      if (counter) counter.hidden = true;
       return;
     }
     thumbs.style.display = "";
+    if (prev) prev.hidden = false;
+    if (next) next.hidden = false;
+    if (counter) {
+      counter.hidden = false;
+      counter.textContent = "1 / " + imgs.length;
+    }
     thumbs.innerHTML = imgs.map((u, i) =>
       `<button type="button" data-thumb="${i}" class="${i === 0 ? "modal__thumb--active" : ""}" aria-label="Ver foto ${i + 1}"><img src="${u}" alt="" loading="lazy" /></button>`
     ).join("");
     thumbs.querySelectorAll("[data-thumb]").forEach((b) =>
       b.addEventListener("click", (ev) => {
         ev.stopPropagation();
-        const i = Number(b.dataset.thumb);
-        if (main && imgs[i]) main.src = imgs[i];
-        thumbs.querySelectorAll("[data-thumb]").forEach((x) =>
-          x.classList.toggle("modal__thumb--active", x === b));
+        this.showModalImage(Number(b.dataset.thumb));
       })
     );
+  },
+
+  showModalImage(index) {
+    const imgs = this._modalImages || [];
+    if (!imgs.length) return;
+    const idx = ((index % imgs.length) + imgs.length) % imgs.length;
+    this._modalIndex = idx;
+    const main = document.getElementById("modalImg");
+    if (main && imgs[idx]) main.src = imgs[idx];
+    const counter = document.getElementById("modalCounter");
+    if (counter) counter.textContent = (idx + 1) + " / " + imgs.length;
+    const thumbs = document.getElementById("modalThumbs");
+    if (thumbs) thumbs.querySelectorAll("[data-thumb]").forEach((x, j) =>
+      x.classList.toggle("modal__thumb--active", j === idx));
+  },
+
+  stepModalImage(delta) {
+    this.showModalImage((this._modalIndex || 0) + delta);
   },
 
   renderCookieBanner() {
@@ -238,11 +307,11 @@ const ALPA_COMPONENTS = {
       <div class="cookie-banner__inner">
         <div class="cookie-banner__text">
           <strong>Usamos cookies</strong>
-          <p>Utilizamos cookies para mejorar tu experiencia y analizar el tráfico. Puedes aceptarlas o rechazarlas. <a href="#" id="cookieMoreInfo"><!-- TODO: añadir página -->Más información</a></p>
+          <p>Utilizamos cookies para mejorar tu experiencia y analizar el tráfico. Puedes aceptarlas o rechazarlas.</p>
         </div>
         <div class="cookie-banner__actions">
-          <button class="btn btn--primary" id="cookieAccept">Aceptar</button>
-          <button class="btn btn--ghost" id="cookieReject">Rechazar</button>
+          <button type="button" class="btn btn--primary" id="cookieAccept">Aceptar</button>
+          <button type="button" class="btn btn--ghost" id="cookieReject">Rechazar</button>
         </div>
       </div>
     </div>`;
@@ -353,18 +422,52 @@ const ALPA_COMPONENTS = {
   },
 
   initCookieBanner() {
-    if (localStorage.getItem("alpa_cookies") !== null) return;
     const banner = document.getElementById("cookieBanner");
-    if (!banner) return;
-    banner.classList.add("cookie-banner--show");
-    document.getElementById("cookieAccept").addEventListener("click", () => {
-      localStorage.setItem("alpa_cookies", "accepted");
+    const settingsBtn = document.getElementById("cookieSettings");
+
+    if (!banner) {
+      if (settingsBtn) settingsBtn.hidden = true;
+      return;
+    }
+
+    const readPref = () => {
+      try { return localStorage.getItem("alpa_cookies"); } catch (_) { return null; }
+    };
+    const writePref = (value) => {
+      try { localStorage.setItem("alpa_cookies", value); } catch (_) {}
+    };
+    const clearPref = () => {
+      try { localStorage.removeItem("alpa_cookies"); } catch (_) {}
+    };
+
+    const syncOffset = () => {
+      const open = banner.classList.contains("cookie-banner--show");
+      document.body.classList.toggle("cookie-banner-open", open);
+      document.body.style.setProperty("--cookie-banner-h", (open ? banner.offsetHeight : 0) + "px");
+    };
+    const openBanner = () => {
+      banner.classList.add("cookie-banner--show");
+      syncOffset();
+    };
+    const closeBanner = (value) => {
+      writePref(value);
       banner.classList.remove("cookie-banner--show");
-    });
-    document.getElementById("cookieReject").addEventListener("click", () => {
-      localStorage.setItem("alpa_cookies", "rejected");
-      banner.classList.remove("cookie-banner--show");
-    });
+      syncOffset();
+    };
+
+    if (readPref() === null) openBanner();
+
+    const acceptBtn = document.getElementById("cookieAccept");
+    const rejectBtn = document.getElementById("cookieReject");
+    if (acceptBtn) acceptBtn.addEventListener("click", () => closeBanner("accepted"));
+    if (rejectBtn) rejectBtn.addEventListener("click", () => closeBanner("rejected"));
+    if (settingsBtn) settingsBtn.addEventListener("click", () => { clearPref(); openBanner(); });
+
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(syncOffset).observe(banner);
+    } else {
+      window.addEventListener("resize", syncOffset);
+    }
   },
 
   initScrollTop() {
@@ -471,3 +574,7 @@ const ALPA_COMPONENTS = {
     });
   }
 };
+
+// Exponer el objeto globalmente para los scripts que comprueban window.ALPA_COMPONENTS
+window.ALPA_COMPONENTS = ALPA_COMPONENTS;
+

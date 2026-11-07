@@ -75,6 +75,38 @@ const ALPA_STORE = (() => {
     return PRODUCTS.length;
   }
 
+  // Fotos de la portada (las edita el admin en la pestaña "Portada").
+  // Si la tabla aún no existe o está vacía devuelve [] y el inicio
+  // mantiene las fotos por defecto del HTML.
+  async function getHeroImages() {
+    const sb = getClient();
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("hero_images")
+      .select("slot,image_url")
+      .order("slot", { ascending: true });
+    if (error) {
+      console.warn("[store] hero_images:", error.message);
+      return [];
+    }
+    return data || [];
+  }
+
+  // Fotos de "Nuestra galería" (pestaña "Galería" del admin).
+  async function getGalleryImages() {
+    const sb = getClient();
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("gallery_images")
+      .select("slot,image_url")
+      .order("slot", { ascending: true });
+    if (error) {
+      console.warn("[store] gallery_images:", error.message);
+      return [];
+    }
+    return data || [];
+  }
+
   // Puntitos de color para las tarjetas (máx 10 + contador).
   function colorDots(p, max = 10) {
     const colors = (p && Array.isArray(p.colors) ? p.colors : [])
@@ -106,5 +138,5 @@ const ALPA_STORE = (() => {
       `</div>`;
   }
 
-  return { refresh, colorDots, sizePills, get loaded() { return loaded; } };
+  return { refresh, getHeroImages, getGalleryImages, colorDots, sizePills, get loaded() { return loaded; } };
 })();
