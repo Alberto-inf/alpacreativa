@@ -56,6 +56,30 @@
     #toggleListBtn[aria-expanded="true"] { border-color: var(--primary); color: var(--primary); }
     .form-grid .full { grid-column: 1 / -1; }
     @media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } .photo-zone { grid-template-columns: 1fr; } }
+
+    /* Pestañas del panel */
+    .admin-tabs { display: flex; gap: 4px; margin-top: 22px; border-bottom: 2px solid var(--line); flex-wrap: wrap; }
+    .admin-tab {
+      padding: 12px 20px; font-size: 14px; font-weight: 600; color: var(--muted);
+      cursor: pointer; border: none; background: none; font-family: inherit;
+      border-bottom: 2px solid transparent; margin-bottom: -2px; transition: var(--transition);
+    }
+    .admin-tab:hover { color: var(--ink); }
+    .admin-tab--active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* Portada (hero): 4 fotos */
+    .hero-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+    .hero-slot { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: #fff; min-width: 0; }
+    .hero-slot .photo-preview { width: 100%; height: 180px; }
+    .hero-slot input[type="file"] { display: block; width: 100%; max-width: 100%; min-width: 0; font-size: 12px; }
+    @media (max-width: 760px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    /* Galería del inicio: 12 fotos */
+    .gallery-admin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+    .gallery-admin-grid .photo-preview { width: 100%; height: 140px; }
+    .gallery-admin-grid .admin-field { margin: 10px 0 0; }
+    @media (max-width: 760px) { .gallery-admin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 480px) { .gallery-admin-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -91,6 +115,13 @@
 
       <!-- PANEL -->
       <section id="panelSection" style="display:none">
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab admin-tab--active" id="tabProducts" data-pane="productsPane">Productos</button>
+          <button type="button" class="admin-tab" id="tabHero" data-pane="heroPane">Portada (inicio)</button>
+          <button type="button" class="admin-tab" id="tabGallery" data-pane="galleryPane">Galería (inicio)</button>
+        </div>
+
+        <div id="productsPane">
           <div class="admin-card">
           <div class="toolbar">
             <div class="btn-row">
@@ -161,6 +192,78 @@
               <button type="button" class="link-btn" id="cancelBtn">Cancelar</button>
             </div>
           </form>
+        </div>
+        </div><!-- /productsPane -->
+
+        <div id="heroPane" style="display:none">
+          <div class="admin-card">
+            <h2 style="font-family:'Playfair Display',serif;margin:0 0 4px">Fotos de la portada</h2>
+            <p style="color:var(--muted);font-size:14px;margin:0 0 6px;line-height:1.5">
+              Son las 4 fotos que se ven en el inicio. Cambia solo las que quieras: las demás se quedan como están.
+              No afecta a los productos ni a las categorías.
+            </p>
+            <p style="color:var(--muted);font-size:13px;margin:0;line-height:1.5">
+              Se comprimen solas a ~1600px. Mejor fotos horizontales o cuadradas de buena calidad.
+            </p>
+
+            <div class="hero-grid">
+              <div class="hero-slot">
+                <div class="photo-preview" id="heroPreview1">Foto 1.<br>Pulsa “Elegir foto 1”.</div>
+                <div class="admin-field" style="margin:12px 0 0">
+                  <label for="heroPhoto1">Foto 1</label>
+                  <input type="file" id="heroPhoto1" accept="image/jpeg,image/png,image/webp" />
+                </div>
+              </div>
+              <div class="hero-slot">
+                <div class="photo-preview" id="heroPreview2">Foto 2.<br>Pulsa “Elegir foto 2”.</div>
+                <div class="admin-field" style="margin:12px 0 0">
+                  <label for="heroPhoto2">Foto 2</label>
+                  <input type="file" id="heroPhoto2" accept="image/jpeg,image/png,image/webp" />
+                </div>
+              </div>
+              <div class="hero-slot">
+                <div class="photo-preview" id="heroPreview3">Foto 3.<br>Pulsa “Elegir foto 3”.</div>
+                <div class="admin-field" style="margin:12px 0 0">
+                  <label for="heroPhoto3">Foto 3</label>
+                  <input type="file" id="heroPhoto3" accept="image/jpeg,image/png,image/webp" />
+                </div>
+              </div>
+              <div class="hero-slot">
+                <div class="photo-preview" id="heroPreview4">Foto 4.<br>Pulsa “Elegir foto 4”.</div>
+                <div class="admin-field" style="margin:12px 0 0">
+                  <label for="heroPhoto4">Foto 4</label>
+                  <input type="file" id="heroPhoto4" accept="image/jpeg,image/png,image/webp" />
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-error" id="heroError"></div>
+            <div class="btn-row" style="margin-top:16px">
+              <button type="button" class="btn btn--primary" id="saveHeroBtn">Guardar portada</button>
+              <button type="button" class="link-btn" id="resetHeroBtn">Restaurar por defecto</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="galleryPane" style="display:none">
+          <div class="admin-card">
+            <h2 style="font-family:'Playfair Display',serif;margin:0 0 4px">Fotos de “Nuestra galería”</h2>
+            <p style="color:var(--muted);font-size:14px;margin:0 0 6px;line-height:1.5">
+              Son las fotos de la sección “Nuestra galería” del inicio. Cambia solo las que quieras: las demás se quedan como están.
+              No afecta a los productos.
+            </p>
+            <p style="color:var(--muted);font-size:13px;margin:0;line-height:1.5">
+              Se comprimen solas a ~1600px. Mejor fotos cuadradas o verticales de buena calidad.
+            </p>
+
+            <div class="gallery-admin-grid" id="galleryGrid"></div>
+
+            <div class="admin-error" id="galleryError"></div>
+            <div class="btn-row" style="margin-top:16px">
+              <button type="button" class="btn btn--primary" id="saveGalleryBtn">Guardar galería</button>
+              <button type="button" class="link-btn" id="resetGalleryBtn">Restaurar por defecto</button>
+            </div>
+          </div>
         </div>
       </section>
     </div>
